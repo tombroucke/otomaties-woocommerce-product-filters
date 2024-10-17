@@ -1,0 +1,32 @@
+{
+  "name": "tombroucke/otomaties-woocommerce-product-filters",
+  "type": "package",
+  "description": "Product filters for WooCommerce",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Brandon Nifong",
+      "email": "brandon@tendency.me"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Otomaties\\ProductFilters\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.0",
+    "livewire/livewire": "^3.5",
+    "illuminate/support": "^11.28"
+  },
+  "extra": {
+    "acorn": {
+      "providers": [
+        "Otomaties\\ProductFilters\\Providers\\ProductFiltersServiceProvider"
+      ],
+      "aliases": {
+        "ProductFilters": "Otomaties\\ProductFilters\\Facades\\ProductFilters"
+      }
+    }
+  }
+}
