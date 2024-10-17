@@ -86,3 +86,6 @@ In `archive-product.blade.php`
   </div>
 </div>
 ```
+
+### Optimize clear (optional if you run into an issue)
+`wp acorn optimize:clear`
