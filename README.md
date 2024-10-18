@@ -1,6 +1,6 @@
 # Woocommerce Product Filters
 
-> [!WIP]
+> [!WARNING]
 > This project is not production ready. There is more work that needs to be done
 >
 > - Enable / disable filters on certain pages
