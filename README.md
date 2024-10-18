@@ -1,6 +1,6 @@
 # Woocommerce Product Filters
 
-> [!WIP]
+> [!WARNING]
 > This project is not production ready. There is more work that needs to be done
 >
 > - Enable / disable filters on certain pages
@@ -83,15 +83,13 @@ return [
 In `archive-product.blade.php`
 
 ```blade
-<div class="row">
-  <div class="col-12">
-    <livewire:product-sorting />
-  </div>
-  <div class="col-md-4">
-    <livewire:product-filters />
-  </div>
-  <div class="col-md-8">
-    <livewire:products />
-  </div>
-</div>
+<livewire:products />
 ```
+
+### Optimize clear
+
+`wp acorn optimize:clear`
+
+### Optional: publish views
+
+`wp acorn vendor:publish --tag="product-filters-views"`
