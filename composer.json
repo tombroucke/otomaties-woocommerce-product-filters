@@ -1,6 +1,6 @@
 {
   "name": "tombroucke/otomaties-woocommerce-product-filters",
-  "type": "package",
+  "type": "wordpress-plugin",
   "description": "Product filters for WooCommerce",
   "license": "MIT",
   "authors": [

@@ -2,6 +2,8 @@
 
 namespace Otomaties\ProductFilters\Filters;
 
+use Otomaties\ProductFilters\ProductFilters;
+
 class MetaFilter extends Filter
 {
     private string $metaKey;
@@ -15,22 +17,21 @@ class MetaFilter extends Filter
 
     public function options()
     {
-        $args = [
-            'post_type' => 'product',
+        $queryArgs = array_merge(ProductFilters::baseQueryArgs(), [
             'posts_per_page' => -1,
+            'fields' => 'ids',
             'meta_key' => $this->metaKey(),
             'orderby' => 'meta_value',
             'order' => 'ASC',
-            'fields' => 'ids',
             'meta_query' => [
                 [
                     'key' => $this->metaKey(),
                     'compare' => 'EXISTS',
                 ],
             ],
-        ];
+        ]);
 
-        return collect(get_posts($args))
+        return collect(get_posts($queryArgs))
             ->map(fn ($postId) => get_post_meta($postId, $this->metaKey(), true))
             ->mapWithKeys(fn ($value) => [$value => $value])
             ->unique()
@@ -42,14 +43,10 @@ class MetaFilter extends Filter
         return $this->metaKey;
     }
 
-    public function modifyQueryArgs(array $args, array $values): array
+    public function modifyQueryArgs(array $args, mixed $value): array
     {
-        $value = $values[0] ?? null;
-
         $metaQuery = collect($args['meta_query'] ?? [])
-            ->reject(function ($query) {
-                return $query['key'] === $this->metaKey();
-            });
+            ->reject(fn ($query) => $query['key'] === $this->metaKey());
 
         if (! empty($value)) {
             $metaQuery->push([

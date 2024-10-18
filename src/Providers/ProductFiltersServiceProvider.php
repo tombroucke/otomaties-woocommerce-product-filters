@@ -3,8 +3,8 @@
 namespace Otomaties\ProductFilters\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
 use Livewire\Livewire;
+use Otomaties\ProductFilters\Filters\FilterFactory;
 use Otomaties\ProductFilters\Livewire\Filters\CheckboxComponent;
 use Otomaties\ProductFilters\Livewire\Filters\PriceComponent;
 use Otomaties\ProductFilters\Livewire\Filters\RadioComponent;
@@ -22,26 +22,10 @@ class ProductFiltersServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind('product-filters::filter', function ($app, $params) {
-            $filter = $params['filter'];
-            $slug = $params['slug'];
-            unset($filter['slug']);
-
-            $file = Str::studly($filter['component']);
-
-            if (isset($filter['type'])) {
-                $file .= '\\'.Str::studly($filter['type']).Str::studly($filter['component']);
-            }
-
-            $class = 'Otomaties\ProductFilters\Filters\\'.$file;
-
-            return new $class($slug, $filter);
-        });
-
         $this->app->singleton('product-filters::filters', function () {
             return collect(config('product-filters.filters'))
                 ->map(function ($filter, $slug) {
-                    return app('product-filters::filter', ['filter' => $filter, 'slug' => $slug]);
+                    return FilterFactory::create($filter['component'], $slug, $filter);
                 });
         });
 

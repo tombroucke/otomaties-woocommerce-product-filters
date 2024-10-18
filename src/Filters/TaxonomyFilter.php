@@ -2,6 +2,9 @@
 
 namespace Otomaties\ProductFilters\Filters;
 
+use Illuminate\Support\Collection;
+use Otomaties\ProductFilters\ProductFilters;
+
 class TaxonomyFilter extends Filter
 {
     private string $taxonomy;
@@ -13,20 +16,20 @@ class TaxonomyFilter extends Filter
         parent::__construct($slug, $params);
     }
 
-    public function options()
+    public function options(): Collection
     {
+        $queryArgs = array_merge(ProductFilters::baseQueryArgs(), [
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+        ]);
+
+        $productIds = get_posts($queryArgs);
         $queriedObject = get_queried_object();
 
-        $args = [
-            'taxonomy' => $this->taxonomy(),
-            'hide_empty' => false,
+        return collect(wp_get_object_terms($productIds, $this->taxonomy(), [
+            'hide_empty' => true,
             'parent' => ($queriedObject instanceof \WP_Term && $queriedObject->taxonomy === $this->taxonomy()) ? $queriedObject->term_id : 0,
-        ];
-
-        return collect(get_terms($args))
-            ->mapWithKeys(function ($term) {
-                return [$term->slug => $term->name];
-            });
+        ]))->mapWithKeys(fn ($term) => [$term->slug => $term->name]);
     }
 
     public function taxonomy(): string
@@ -34,13 +37,12 @@ class TaxonomyFilter extends Filter
         return $this->taxonomy;
     }
 
-    public function modifyQueryArgs(array $args, array $values): array
+    public function modifyQueryArgs(array $args, mixed $value): array
     {
-        $value = $values[0] ?? null;
-
         $taxQuery = collect($args['tax_query'] ?? [])
             ->reject(fn ($query) => $query['taxonomy'] === $this->taxonomy());
 
+        $value = array_filter((array) $value);
         if (! empty($value)) {
             $taxQuery->push([
                 'taxonomy' => $this->taxonomy(),

@@ -6,10 +6,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Otomaties\ProductFilters\ProductFilters;
 
 class ProductsComponent extends Component
 {
-    public $postsPerPage = 1;
+    public $postsPerPage;
 
     public $taxonomy = null;
 
@@ -20,21 +21,12 @@ class ProductsComponent extends Component
     #[Url]
     public $page = 1;
 
-    public $queryArgs = [
-        'post_type' => 'product',
-        'tax_query' => [],
-        'meta_query' => [],
-    ];
+    public $queryArgs = [];
 
     public function mount()
     {
         $this->postsPerPage = apply_filters('loop_shop_per_page', wc_get_default_products_per_row() * wc_get_default_product_rows_per_page());
-        $queriedObject = get_queried_object();
-
-        if ($queriedObject instanceof \WP_Term) {
-            $this->taxonomy = $queriedObject->taxonomy;
-            $this->termId = $queriedObject->term_id;
-        }
+        $this->queryArgs = ProductFilters::baseQueryArgs();
     }
 
     /**
@@ -44,6 +36,8 @@ class ProductsComponent extends Component
      */
     public function render()
     {
+        $this->buildQueryArgs();
+
         return view('product-filters::livewire.products', [
             'productQuery' => new \WP_Query($this->buildQueryArgs()),
         ]);
@@ -55,14 +49,6 @@ class ProductsComponent extends Component
         $args['posts_per_page'] = $this->postsPerPage;
         $args['paged'] = $this->page;
 
-        if ($this->taxonomy && $this->termId) {
-            $args['tax_query'][] = [
-                'taxonomy' => $this->taxonomy,
-                'field' => 'term_id',
-                'terms' => $this->termId,
-            ];
-        }
-
         $orderingArgs = WC()->query->get_catalog_ordering_args($this->orderBy);
 
         $queryParams = request()->query();
@@ -71,19 +57,26 @@ class ProductsComponent extends Component
         foreach ($queryParams as $key => $value) {
             $filter = $filters->get($key);
             if ($filter) {
-                $args = $filter->modifyQueryArgs($args, [$value]);
+                $args = $filter->modifyQueryArgs($args, $value);
             }
+        }
+
+        $priceMin = $queryParams['price_min'] ?? null;
+        $priceMax = $queryParams['price_max'] ?? null;
+
+        if ($priceMin || $priceMax) {
+            $args = $filters->get('price')->modifyQueryArgs($args, ['min' => $priceMin, 'max' => $priceMax]);
         }
 
         return array_merge($args, $orderingArgs);
     }
 
     #[On('filter-updated')]
-    public function applyFilters($slug, ...$values)
+    public function applyFilters($slug, $value)
     {
-        $filter = app('product-filters::filters')
-            ->get($slug);
-        $this->queryArgs = $filter->modifyQueryArgs($this->queryArgs, $values);
+        $this->queryArgs = app('product-filters::filters')
+            ->get($slug)
+            ->modifyQueryArgs($this->queryArgs, $value);
     }
 
     #[On('sortby-updated')]

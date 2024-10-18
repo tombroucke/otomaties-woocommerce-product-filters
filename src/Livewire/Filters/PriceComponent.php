@@ -21,7 +21,9 @@ class PriceComponent extends Component
 
     public function updated()
     {
-        $this->dispatch('filter-updated', $this->slug, $this->min, $this->max);
+        $min = $this->min;
+        $max = $this->max;
+        $this->dispatch('filter-updated', $this->slug, compact('min', 'max'));
     }
 
     /**
@@ -32,5 +34,17 @@ class PriceComponent extends Component
     public function render()
     {
         return view('product-filters::livewire.components.price');
+    }
+
+    protected function queryString()
+    {
+        return [
+            'min' => [
+                'as' => 'price_min',
+            ],
+            'max' => [
+                'as' => 'price_max',
+            ],
+        ];
     }
 }

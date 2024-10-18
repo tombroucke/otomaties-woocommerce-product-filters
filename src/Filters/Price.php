@@ -6,8 +6,7 @@ class Price extends Filter
 {
     public function modifyQueryArgs(array $args, array $values): array
     {
-        $min = $values[0] ?? null;
-        $max = $values[1] ?? null;
+        extract($values);
 
         $metaQuery = collect($args['meta_query'] ?? [])
             ->reject(fn ($query) => $query['key'] === '_price');
