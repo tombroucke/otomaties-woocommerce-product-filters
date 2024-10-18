@@ -5,7 +5,7 @@
 >
 > - Enable / disable filters on certain pages
 > - Add more components (radio, price range)
->   Only fetch terms / meta values from products that are currently eligible
+> - Only fetch terms / meta values from products that are currently eligible
 
 ## Installation
 
