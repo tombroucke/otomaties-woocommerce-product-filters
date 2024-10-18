@@ -4,5 +4,5 @@ namespace Otomaties\ProductFilters\Filters\Contracts;
 
 interface Filter
 {
-    public function modifyQueryArgs(array $queryArgs, mixed $value): array;
+    public function modifyQueryArgs(array $queryArgs, array $value): array;
 }

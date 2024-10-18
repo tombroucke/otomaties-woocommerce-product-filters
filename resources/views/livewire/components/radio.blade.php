@@ -6,7 +6,7 @@
         <input
           class="form-check-input"
           id="{{ $slug }}_{{ $key }}"
-          type="checkbox"
+          type="radio"
           value="{{ $key }}"
           wire:model.live="value"
         >

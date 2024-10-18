@@ -15,16 +15,18 @@ class TaxonomyFilter extends Filter
 
     public function options()
     {
-        $terms = get_terms([
+        $queriedObject = get_queried_object();
+
+        $args = [
             'taxonomy' => $this->taxonomy(),
             'hide_empty' => false,
-        ]);
+            'parent' => ($queriedObject instanceof \WP_Term && $queriedObject->taxonomy === $this->taxonomy()) ? $queriedObject->term_id : 0,
+        ];
 
-        return collect($terms)
+        return collect(get_terms($args))
             ->mapWithKeys(function ($term) {
                 return [$term->slug => $term->name];
-            })
-            ->toArray();
+            });
     }
 
     public function taxonomy(): string
@@ -32,24 +34,22 @@ class TaxonomyFilter extends Filter
         return $this->taxonomy;
     }
 
-    public function modifyQueryArgs(array $args, mixed $value): array
+    public function modifyQueryArgs(array $args, array $values): array
     {
+        $value = $values[0] ?? null;
+
         $taxQuery = collect($args['tax_query'] ?? [])
-            ->reject(function ($query) {
-                return $query['taxonomy'] === $this->taxonomy();
-            });
+            ->reject(fn ($query) => $query['taxonomy'] === $this->taxonomy());
 
-        if (empty($value)) {
-            $args['tax_query'] = $taxQuery->toArray();
-
-            return $args;
+        if (! empty($value)) {
+            $taxQuery->push([
+                'taxonomy' => $this->taxonomy(),
+                'field' => 'slug',
+                'terms' => $value,
+            ]);
         }
 
-        $args['tax_query'] = $taxQuery->push([
-            'taxonomy' => $this->taxonomy(),
-            'field' => 'slug',
-            'terms' => $value,
-        ])->toArray();
+        $args['tax_query'] = $taxQuery->toArray();
 
         return $args;
     }

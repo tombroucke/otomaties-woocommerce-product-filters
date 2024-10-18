@@ -3,10 +3,11 @@
 namespace Otomaties\ProductFilters\Filters;
 
 use Illuminate\Support\Str;
+use Otomaties\ProductFilters\Filters\Contracts\Filter as FilterInterface;
 
-abstract class Filter
+abstract class Filter implements FilterInterface
 {
-    private string $type;
+    private ?string $type;
 
     private string $title;
 
@@ -15,8 +16,8 @@ abstract class Filter
     public function __construct(protected string $slug, array $params)
     {
         $this->title = $params['title'];
-        $this->type = $params['type'];
         $this->component = $params['component'];
+        $this->type = $params['type'] ?? null;
     }
 
     public function slug(): string
@@ -34,12 +35,7 @@ abstract class Filter
         return $this->title;
     }
 
-    public function value(): mixed
-    {
-        return null;
-    }
-
-    public function componentName()
+    public function component()
     {
         return Str::kebab($this->component);
     }

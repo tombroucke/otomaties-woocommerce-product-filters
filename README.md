@@ -1,10 +1,9 @@
 # Woocommerce Product Filters
 
-> [!WARNING]
+> [!WIP]
 > This project is not production ready. There is more work that needs to be done
 >
 > - Enable / disable filters on certain pages
-> - Add more components (radio, price range)
 > - Only fetch terms / meta values from products that are currently eligible
 
 ## Installation
@@ -53,6 +52,12 @@ return [
             'type' => 'taxonomy',
             'taxonomy' => 'product_cat',
         ],
+        'custommeta' => [
+            'title' => 'Custom meta',
+            'component' => 'checkbox',
+            'type' => 'meta',
+            'meta_key' => 'custom_meta',
+        ],
         'features' => [
             'title' => 'Features',
             'component' => 'select',
@@ -64,6 +69,10 @@ return [
             'component' => 'select',
             'type' => 'taxonomy',
             'taxonomy' => 'pa_size',
+        ],
+        'price' => [
+            'title' => 'Price',
+            'component' => 'price',
         ],
     ],
 ];
@@ -86,6 +95,3 @@ In `archive-product.blade.php`
   </div>
 </div>
 ```
-
-### Optimize clear (optional if you run into an issue)
-`wp acorn optimize:clear`

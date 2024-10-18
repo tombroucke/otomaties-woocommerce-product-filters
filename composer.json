@@ -23,10 +23,7 @@
     "acorn": {
       "providers": [
         "Otomaties\\ProductFilters\\Providers\\ProductFiltersServiceProvider"
-      ],
-      "aliases": {
-        "ProductFilters": "Otomaties\\ProductFilters\\Facades\\ProductFilters"
-      }
+      ]
     }
   }
 }

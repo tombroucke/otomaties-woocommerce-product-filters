@@ -42,6 +42,6 @@ class ProductSortingComponent extends Component
      */
     public function render()
     {
-        return view('ProductFilters::livewire.product-sorting');
+        return view('product-filters::livewire.product-sorting');
     }
 }

@@ -4,7 +4,7 @@ namespace Otomaties\ProductFilters\Livewire\Filters;
 
 use Livewire\Component;
 
-class CheckboxComponent extends Component
+class RadioComponent extends Component
 {
     public $options;
 
@@ -41,6 +41,6 @@ class CheckboxComponent extends Component
      */
     public function render()
     {
-        return view('product-filters::livewire.components.checkbox');
+        return view('product-filters::livewire.components.radio');
     }
 }

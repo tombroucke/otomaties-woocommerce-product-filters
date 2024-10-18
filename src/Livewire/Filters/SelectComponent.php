@@ -19,7 +19,6 @@ class SelectComponent extends Component
     public function mount($filter)
     {
         $this->options = $filter->options();
-        $this->value = $filter->value();
         $this->title = $filter->title();
     }
 
@@ -44,6 +43,6 @@ class SelectComponent extends Component
      */
     public function render()
     {
-        return view('ProductFilters::livewire.components.select');
+        return view('product-filters::livewire.components.select');
     }
 }

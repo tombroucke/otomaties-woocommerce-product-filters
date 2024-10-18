@@ -13,8 +13,8 @@ class ProductFiltersComponent extends Component
      */
     public function render()
     {
-        return view('ProductFilters::livewire.product-filters', [
-            'filters' => app('ProductFilters::filters'),
+        return view('product-filters::livewire.product-filters', [
+            'filters' => app('product-filters::filters'),
         ]);
     }
 }

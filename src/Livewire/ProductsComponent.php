@@ -23,7 +23,19 @@ class ProductsComponent extends Component
     public $queryArgs = [
         'post_type' => 'product',
         'tax_query' => [],
+        'meta_query' => [],
     ];
+
+    public function mount()
+    {
+        $this->postsPerPage = apply_filters('loop_shop_per_page', wc_get_default_products_per_row() * wc_get_default_product_rows_per_page());
+        $queriedObject = get_queried_object();
+
+        if ($queriedObject instanceof \WP_Term) {
+            $this->taxonomy = $queriedObject->taxonomy;
+            $this->termId = $queriedObject->term_id;
+        }
+    }
 
     /**
      * Render the component.
@@ -32,7 +44,7 @@ class ProductsComponent extends Component
      */
     public function render()
     {
-        return view('ProductFilters::livewire.products', [
+        return view('product-filters::livewire.products', [
             'productQuery' => new \WP_Query($this->buildQueryArgs()),
         ]);
     }
@@ -53,21 +65,29 @@ class ProductsComponent extends Component
 
         $orderingArgs = WC()->query->get_catalog_ordering_args($this->orderBy);
 
+        $queryParams = request()->query();
+        $filters = app('product-filters::filters');
+
+        foreach ($queryParams as $key => $value) {
+            $filter = $filters->get($key);
+            if ($filter) {
+                $args = $filter->modifyQueryArgs($args, [$value]);
+            }
+        }
+
         return array_merge($args, $orderingArgs);
     }
 
     #[On('filter-updated')]
-    public function filterPostList($slug, $value)
+    public function applyFilters($slug, ...$values)
     {
-        $filter = app('ProductFilters::filters')
-            ->firstWhere(function ($filter) use ($slug) {
-                return $filter->slug() === $slug;
-            });
-        $this->queryArgs = $filter->modifyQueryArgs($this->queryArgs, $value);
+        $filter = app('product-filters::filters')
+            ->get($slug);
+        $this->queryArgs = $filter->modifyQueryArgs($this->queryArgs, $values);
     }
 
     #[On('sortby-updated')]
-    public function sortPostList($sortKey)
+    public function sort($sortKey)
     {
         $this->orderBy = $sortKey;
     }
@@ -106,16 +126,5 @@ class ProductsComponent extends Component
     public function goToPage($page)
     {
         $this->page = $page;
-    }
-
-    public function mount()
-    {
-        $this->postsPerPage = apply_filters('loop_shop_per_page', wc_get_default_products_per_row() * wc_get_default_product_rows_per_page());
-        $queriedObject = get_queried_object();
-
-        if ($queriedObject instanceof \WP_Term) {
-            $this->taxonomy = $queriedObject->taxonomy;
-            $this->termId = $queriedObject->term_id;
-        }
     }
 }
