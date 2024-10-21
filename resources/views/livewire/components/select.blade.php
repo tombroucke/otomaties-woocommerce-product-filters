@@ -1,7 +1,6 @@
-<div>
+<div class="products__filters__select">
   <label for="filters_{{ $slug }}">{!! $title !!}</label>
   <select
-    class="form-select"
     id="filters_{{ $slug }}"
     name="filter_{{ $slug }}"
     wire:model.live="value"

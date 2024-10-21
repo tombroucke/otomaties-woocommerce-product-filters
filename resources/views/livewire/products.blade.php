@@ -1,13 +1,13 @@
-<div class="row">
-  <div class="col-12">
+<div class="products">
+  <div class="products__sorting">
     <div class="d-flex justify-content-end">
       <livewire:product-sorting />
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="products__filters">
     <livewire:product-filters />
   </div>
-  <div class="col-md-8">
+  <div class="products__products">
     <div>
       @if ($productQuery->have_posts())
         @php
@@ -34,7 +34,7 @@
       @endif
 
       @if (count($this->pages) > 1)
-        <nav>
+        <nav class="products__navigation">
           <ul class="pagination">
             @foreach ($this->pages as $page)
               <li @class(['page-item', 'active' => $page['active']])>

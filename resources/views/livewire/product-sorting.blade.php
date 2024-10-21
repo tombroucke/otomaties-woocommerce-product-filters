@@ -1,8 +1,5 @@
 <div>
-  <select
-    class="form-select"
-    wire:model.live="selected"
-  >
+  <select wire:model.live="selected">
     @foreach ($options as $key => $option)
       <option value="{{ $key }}">
         {{ $option }}

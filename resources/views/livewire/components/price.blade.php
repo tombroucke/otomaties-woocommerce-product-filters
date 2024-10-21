@@ -1,9 +1,8 @@
-<div>
+<div class="products__filters__price">
   <label>{!! $title !!}</label>
-  <div class="d-flex">
+  <div>
     <div>
       <input
-        class="form-control"
         type="number"
         wire:model.live="min"
         placeholder="Min"
@@ -11,7 +10,6 @@
     </div>
     <div>
       <input
-        class="form-control"
         type="number"
         wire:model.live="max"
         placeholder="Max"
