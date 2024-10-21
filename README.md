@@ -1,10 +1,5 @@
 # Woocommerce Product Filters
 
-> [!WARNING]
-> This project is not production ready. There is more work that needs to be done
->
-> - Enable / disable filters on certain categories
-
 ## Installation
 
 ### Require package
