@@ -3,8 +3,7 @@
 > [!WARNING]
 > This project is not production ready. There is more work that needs to be done
 >
-> - Enable / disable filters on certain pages
-> - Only fetch terms / meta values from products that are currently eligible
+> - Enable / disable filters on certain categories
 
 ## Installation
 
