@@ -1,8 +1,6 @@
 <div class="products">
   <div class="products__sorting">
-    <div class="d-flex justify-content-end">
-      <livewire:product-sorting />
-    </div>
+    <livewire:product-sorting />
   </div>
   <div class="products__filters">
     <livewire:product-filters />
@@ -34,7 +32,7 @@
       @endif
 
       @if (count($this->pages) > 1)
-        <nav class="products__navigation">
+        <nav aria-label="{!! __('Product navigation', 'otomaties-woocommerce-product-filters') !!}">
           <ul class="pagination">
             @foreach ($this->pages as $page)
               <li @class(['page-item', 'active' => $page['active']])>
