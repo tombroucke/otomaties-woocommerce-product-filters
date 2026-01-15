@@ -3,29 +3,45 @@
 namespace Otomaties\ProductFilters\Livewire\Filters;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 abstract class FilterComponent extends Component
 {
-    public $options;
+    public array $options;
 
-    public $value = [];
+    public string|array $value = [];
 
-    public $slug;
+    public string $slug;
 
-    public $title;
+    public string $title;
 
-    public $filterSlug;
+    public ?string $queriedObjectTaxonomy = null;
 
-    public function mount($filter)
+    public ?int $queriedObjectTermId = null;
+
+    public function mount($filter, $filterValues)
     {
-        $this->filterSlug = $filter->slug();
-        $this->options = $filter->options();
-        $this->title = $filter->title();
+        $queriedObject = get_queried_object();
+
+        if ($queriedObject instanceof \WP_Term) {
+            $this->queriedObjectTaxonomy = $queriedObject->taxonomy;
+            $this->queriedObjectTermId = $queriedObject->term_id;
+        }
+        
+        $this->options = $filter->options($this->queriedObjectTaxonomy, $this->queriedObjectTermId, $filterValues);
     }
 
     public function updated()
     {
         $this->dispatch('filter-updated', $this->slug, $this->value);
+    }
+
+    #[On('filters-applied')]
+    public function onFilterUpdated($filterValues)
+    {
+        $this->options = app('product-filters::filters')
+            ->get($this->slug)
+            ->options($this->queriedObjectTaxonomy, $this->queriedObjectTermId, $filterValues);
     }
 
     protected function queryString()

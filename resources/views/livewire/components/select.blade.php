@@ -1,5 +1,5 @@
 <div class="products__filters__select">
-  <label for="filters_{{ $slug }}">{!! $title !!}</label>
+  <h3 for="filters_{{ $slug }}">{!! $title !!}</h3>
   <select
     id="filters_{{ $slug }}"
     name="filter_{{ $slug }}"
@@ -8,7 +8,7 @@
     <option value="">{!! $title !!}</option>
     @foreach ($options as $key => $option)
       <option value="{{ $key }}">
-        {{ $option }}
+        {{ $option['label'] }} ({{ $option['count'] }})
       </option>
     @endforeach
   </select>

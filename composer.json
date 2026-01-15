@@ -1,12 +1,11 @@
 {
   "name": "tombroucke/otomaties-woocommerce-product-filters",
-  "type": "wordpress-plugin",
   "description": "Product filters for WooCommerce",
   "license": "MIT",
   "authors": [
     {
-      "name": "Brandon Nifong",
-      "email": "brandon@tendency.me"
+      "name": "Tom Broucke",
+      "email": "tom@tombroucke.com"
     }
   ],
   "autoload": {

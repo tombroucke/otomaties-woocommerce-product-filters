@@ -16,7 +16,8 @@ class ProductsComponent extends Component
 
     public $termId = null;
 
-    public $orderBy = 'menu_order';
+    #[Url]
+    public $orderby = 'menu_order';
 
     #[Url]
     public $page = 1;
@@ -36,8 +37,6 @@ class ProductsComponent extends Component
      */
     public function render()
     {
-        $this->buildQueryArgs();
-
         return view('product-filters::livewire.products', [
             'productQuery' => new \WP_Query($this->buildQueryArgs()),
         ]);
@@ -49,7 +48,12 @@ class ProductsComponent extends Component
         $args['posts_per_page'] = $this->postsPerPage;
         $args['paged'] = $this->page;
 
-        $orderingArgs = WC()->query->get_catalog_ordering_args($this->orderBy);
+        $order = null;
+        if ($this->orderby === 'price-desc') {
+            $order = 'DESC';
+        }
+
+        $orderingArgs = WC()->query->get_catalog_ordering_args($this->orderby, $order);
 
         $queryParams = request()->query();
         $filters = app('product-filters::filters');
@@ -67,7 +71,7 @@ class ProductsComponent extends Component
         if ($priceMin || $priceMax) {
             $args = $filters->get('price')->modifyQueryArgs($args, ['min' => $priceMin, 'max' => $priceMax]);
         }
-
+        
         return array_merge($args, $orderingArgs);
     }
 
@@ -82,7 +86,7 @@ class ProductsComponent extends Component
     #[On('sortby-updated')]
     public function sort($sortKey)
     {
-        $this->orderBy = $sortKey;
+        $this->orderby = $sortKey;
     }
 
     #[Computed]

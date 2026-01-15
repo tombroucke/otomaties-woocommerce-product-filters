@@ -10,14 +10,9 @@ class PriceComponent extends Component
 
     public $max;
 
-    public $title;
+    public string $title;
 
-    public $slug;
-
-    public function mount($filter)
-    {
-        $this->title = $filter->title();
-    }
+    public string $slug;
 
     public function updated()
     {

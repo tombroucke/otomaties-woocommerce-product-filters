@@ -1,6 +1,6 @@
 <div class="products__filters__radio">
-  @unless ($options->isEmpty())
-    <label>{!! $title !!}</label>
+  @unless (empty($options))
+    <h3>{!! $title !!}</h3>
     @foreach ($options as $key => $option)
       <div>
         <input
@@ -10,7 +10,7 @@
           wire:model.live="value"
         >
         <label for="{{ $slug }}_{{ $key }}">
-          {{ $option }}
+          {{ $option['label'] }} ({{ $option['count'] }})
         </label>
       </div>
     @endforeach
