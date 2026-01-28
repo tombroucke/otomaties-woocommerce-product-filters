@@ -2,8 +2,8 @@
 
 namespace Otomaties\ProductFilters\Livewire;
 
-use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\Component;
 
 class ProductFiltersComponent extends Component
 {
@@ -18,15 +18,16 @@ class ProductFiltersComponent extends Component
     {
         $queryParams = request()->query();
         $filters = app('product-filters::filters');
-        
+
         return collect($queryParams)
-            ->map(function($value, $key) use ($filters) {
+            ->map(function ($value, $key) use ($filters) {
                 $filter = $filters->get($key);
                 if ($filter) {
                     return is_array($value) ? $value : [$value];
                 } elseif ($key === 'price_min' || $key === 'price_max') {
                     return $value;
                 }
+
                 return null;
             })
             ->filter()

@@ -3,6 +3,7 @@
     <livewire:product-sorting />
   </div>
   <div class="products__filters">
+    <livewire:product-search />
     <livewire:product-filters />
   </div>
   <div class="products__products">

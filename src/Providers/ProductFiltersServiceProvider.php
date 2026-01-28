@@ -11,6 +11,7 @@ use Otomaties\ProductFilters\Livewire\Filters\RadioComponent;
 use Otomaties\ProductFilters\Livewire\Filters\SelectComponent;
 use Otomaties\ProductFilters\Livewire\ProductFiltersComponent;
 use Otomaties\ProductFilters\Livewire\ProductsComponent;
+use Otomaties\ProductFilters\Livewire\ProductSearchComponent;
 use Otomaties\ProductFilters\Livewire\ProductSortingComponent;
 
 class ProductFiltersServiceProvider extends ServiceProvider
@@ -64,5 +65,6 @@ class ProductFiltersServiceProvider extends ServiceProvider
         Livewire::component('product-filter-radio', RadioComponent::class);
         Livewire::component('product-filter-price', PriceComponent::class);
         Livewire::component('product-sorting', ProductSortingComponent::class);
+        Livewire::component('product-search', ProductSearchComponent::class);
     }
 }

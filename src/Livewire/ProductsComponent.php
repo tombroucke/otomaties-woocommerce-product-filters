@@ -27,7 +27,7 @@ class ProductsComponent extends Component
     public function mount()
     {
         $this->postsPerPage = apply_filters('loop_shop_per_page', wc_get_default_products_per_row() * wc_get_default_product_rows_per_page());
-        $this->queryArgs = ProductFilters::baseQueryArgs();
+        $this->queryArgs = $this->queryArgsFromRequest();
     }
 
     /**
@@ -42,26 +42,20 @@ class ProductsComponent extends Component
         ]);
     }
 
-    public function buildQueryArgs()
+    public function queryArgsFromRequest()
     {
-        $args = $this->queryArgs;
+        $args = ProductFilters::baseQueryArgs();
         $args['posts_per_page'] = $this->postsPerPage;
         $args['paged'] = $this->page;
 
-        $order = null;
-        if ($this->orderby === 'price-desc') {
-            $order = 'DESC';
-        }
-
-        $orderingArgs = WC()->query->get_catalog_ordering_args($this->orderby, $order);
-
         $queryParams = request()->query();
         $filters = app('product-filters::filters');
-
         foreach ($queryParams as $key => $value) {
             $filter = $filters->get($key);
             if ($filter) {
                 $args = $filter->modifyQueryArgs($args, $value);
+            } elseif ($key === 'product_query') {
+                $args['s'] = $value;
             }
         }
 
@@ -71,7 +65,22 @@ class ProductsComponent extends Component
         if ($priceMin || $priceMax) {
             $args = $filters->get('price')->modifyQueryArgs($args, ['min' => $priceMin, 'max' => $priceMax]);
         }
-        
+
+        return $args;
+    }
+
+    public function buildQueryArgs()
+    {
+        $args = $this->queryArgs;
+        $args['paged'] = $this->page;
+
+        $order = null;
+        if ($this->orderby === 'price-desc') {
+            $order = 'DESC';
+        }
+
+        $orderingArgs = WC()->query->get_catalog_ordering_args($this->orderby, $order);
+
         return array_merge($args, $orderingArgs);
     }
 
@@ -81,6 +90,18 @@ class ProductsComponent extends Component
         $this->queryArgs = app('product-filters::filters')
             ->get($slug)
             ->modifyQueryArgs($this->queryArgs, $value);
+    }
+
+    #[On('search-updated')]
+    public function search($query)
+    {
+        if (empty($query)) {
+            unset($this->queryArgs['s']);
+
+            return;
+        }
+
+        $this->queryArgs['s'] = $query;
     }
 
     #[On('sortby-updated')]

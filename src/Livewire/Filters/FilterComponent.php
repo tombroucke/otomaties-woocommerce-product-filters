@@ -2,8 +2,8 @@
 
 namespace Otomaties\ProductFilters\Livewire\Filters;
 
-use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\Component;
 
 abstract class FilterComponent extends Component
 {
@@ -27,7 +27,7 @@ abstract class FilterComponent extends Component
             $this->queriedObjectTaxonomy = $queriedObject->taxonomy;
             $this->queriedObjectTermId = $queriedObject->term_id;
         }
-        
+
         $this->options = $filter->options($this->queriedObjectTaxonomy, $this->queriedObjectTermId, $filterValues);
     }
 

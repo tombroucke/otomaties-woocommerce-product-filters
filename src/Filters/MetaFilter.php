@@ -25,7 +25,7 @@ class MetaFilter extends Filter
             'posts_per_page' => -1,
             'fields' => 'ids',
         ]);
-        
+
         // Include the queried object (e.g., current product category) in the query
         if ($queriedObjectTaxonomy && $queriedObjectTermId) {
             $queryArgs['tax_query'] = $queryArgs['tax_query'] ?? [];
@@ -35,40 +35,44 @@ class MetaFilter extends Filter
                 'terms' => [$queriedObjectTermId],
             ];
         }
-        
+
         // Apply all filters except the current one
         foreach ($filterValues as $key => $value) {
             if ($key === $this->slug) {
                 continue; // Skip current filter
             }
-            
+
             // Skip price_min and price_max as they're handled separately below
             if (in_array($key, ['price_min', 'price_max'])) {
                 continue;
             }
-            
+
             $filter = $filters->get($key);
             if ($filter) {
                 $queryArgs = $filter->modifyQueryArgs($queryArgs, $value);
             }
         }
-        
+
         // Handle price filter separately if it exists
         $priceMin = $filterValues['price_min'] ?? null;
         $priceMax = $filterValues['price_max'] ?? null;
-        
+
         if (($priceMin || $priceMax) && $this->slug !== 'price') {
             $queryArgs = $filters->get('price')->modifyQueryArgs($queryArgs, ['min' => $priceMin, 'max' => $priceMax]);
         }
 
-        $cacheKey = 'product_meta_filter_ids_' . md5(serialize($queryArgs));
+        $cacheKey = 'product_meta_filter_ids_'.md5(serialize($queryArgs));
 
-        return Cache::rememberForever($cacheKey, fn() => get_posts($queryArgs));
+        return Cache::rememberForever($cacheKey, fn () => get_posts($queryArgs));
     }
 
     public function options(?string $queriedObjectTaxonomy = null, ?int $queriedObjectTermId = null, array $filterValues = [])
     {
-        $productIds = $this->productsForCurrentFilters($queriedObjectTaxonomy, $queriedObjectTermId, $filterValues);
+
+        // Remove price filters for meta counts
+        $filterValuesWithoutPrice = $filterValues;
+        unset($filterValuesWithoutPrice['price_min'], $filterValuesWithoutPrice['price_max']);
+        $productIds = $this->productsForCurrentFilters($queriedObjectTaxonomy, $queriedObjectTermId, $filterValuesWithoutPrice);
 
         // If no products match filters, return empty array
         if (empty($productIds)) {
@@ -91,14 +95,14 @@ class MetaFilter extends Filter
                     $count++;
                 }
             }
-            
+
             return [$value => [
                 'label' => $value,
                 'count' => $count,
             ]];
         })
-        ->filter(fn ($option) => $option['count'] > 0) // Only show values with products
-        ->toArray();
+            ->filter(fn ($option) => $option['count'] > 0) // Only show values with products
+            ->toArray();
     }
 
     public function metaKey(): string

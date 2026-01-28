@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Otomaties WooCommerce Product Filters
  * Plugin URI: https://otomaties.com

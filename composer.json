@@ -24,5 +24,8 @@
         "Otomaties\\ProductFilters\\Providers\\ProductFiltersServiceProvider"
       ]
     }
+  },
+  "require-dev": {
+    "laravel/pint": "^1.27"
   }
 }
