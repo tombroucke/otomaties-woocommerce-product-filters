@@ -15,7 +15,7 @@
   },
   "require": {
     "php": "^8.0",
-    "livewire/livewire": "^3.0",
+    "livewire/livewire": "^4.1",
     "illuminate/support": "*"
   },
   "extra": {
