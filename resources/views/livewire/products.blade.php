@@ -1,26 +1,48 @@
 <div class="products">
+  <div class="products__results">
+    {!! sprintf(
+        /* translators: %s: Number of products found. */
+        __('%s products found', 'otomaties-woocommerce-product-filters'),
+        '<strong>' . number_format_i18n($this->foundProducts) . '</strong>',
+    ) !!}
+  </div>
   <div class="products__sorting">
-    <livewire:product-sorting />
+    <select wire:model.live="orderBy">
+      @foreach ($orderByOptions as $key => $orderByOption)
+        <option value="{{ $key }}">
+          {{ $orderByOption }}
+        </option>
+      @endforeach
+    </select>
   </div>
   <div class="products__filters">
-    <livewire:product-search />
-    <livewire:product-filters />
+    @foreach ($filters as $key => $filter)
+      @livewire(
+          'product-filter.' . $filter['component'],
+          [
+              'filter-key' => $key,
+              'title' => $filter['title'],
+              'queriedObject' => $queriedObject,
+              'filteredProductQueryArgs' => $this->filteredProductQueryArgs,
+              'data' => $filter['data'] ?? null,
+          ],
+          key('filter-' . $key)
+      )
+    @endforeach
   </div>
   <div class="products__products">
     <div>
-      @if ($productQuery->have_posts())
+      @unless ($products->isEmpty())
         @php
           do_action('woocommerce_before_shop_loop');
           woocommerce_product_loop_start();
         @endphp
 
-        @while ($productQuery->have_posts())
-          @php
-            $productQuery->the_post();
-            do_action('woocommerce_shop_loop');
-            wc_get_template_part('content', 'product');
-          @endphp
-        @endwhile
+        @foreach ($products as $product)
+          @woocommerce_product($product->get_ID())
+            @include('woocommerce.content-product')
+          @endwoocommerce_product
+        @endforeach
 
         @php
           woocommerce_product_loop_end();
@@ -30,7 +52,7 @@
         @php
           do_action('woocommerce_no_products_found');
         @endphp
-      @endif
+      @endunless
 
       @if (count($this->pages) > 1)
         <nav aria-label="{!! __('Product navigation', 'otomaties-woocommerce-product-filters') !!}">

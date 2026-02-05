@@ -2,17 +2,14 @@
 
 namespace Otomaties\ProductFilters\Providers;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Otomaties\ProductFilters\Filters\FilterFactory;
-use Otomaties\ProductFilters\Livewire\Filters\CheckboxComponent;
-use Otomaties\ProductFilters\Livewire\Filters\PriceComponent;
-use Otomaties\ProductFilters\Livewire\Filters\RadioComponent;
-use Otomaties\ProductFilters\Livewire\Filters\SelectComponent;
-use Otomaties\ProductFilters\Livewire\ProductFiltersComponent;
+use Otomaties\ProductFilters\Livewire\CheckboxFilter;
+use Otomaties\ProductFilters\Livewire\PriceFilter;
 use Otomaties\ProductFilters\Livewire\ProductsComponent;
-use Otomaties\ProductFilters\Livewire\ProductSearchComponent;
-use Otomaties\ProductFilters\Livewire\ProductSortingComponent;
+use Otomaties\ProductFilters\Livewire\RadioFilter;
+use Otomaties\ProductFilters\Livewire\SelectFilter;
 
 class ProductFiltersServiceProvider extends ServiceProvider
 {
@@ -23,15 +20,8 @@ class ProductFiltersServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('product-filters::filters', function () {
-            return collect(config('product-filters.filters'))
-                ->map(function ($filter, $slug) {
-                    return FilterFactory::create($filter['component'], $slug, $filter);
-                });
-        });
-
         $this->mergeConfigFrom(
-            __DIR__.'/../../config/product-filters.php',
+            __DIR__ . '/../../config/product-filters.php',
             'product-filters'
         );
     }
@@ -44,27 +34,35 @@ class ProductFiltersServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__.'/../../config/product-filters.php' => $this->app->configPath('product-filters.php'),
+            __DIR__ . '/../../config/product-filters.php' => $this->app->configPath('product-filters.php'),
         ], 'product-filters-config');
 
         $this->publishes([
-            __DIR__.'/../../resources/views' => $this->app->resourcePath('views/vendor/product-filters'),
+            __DIR__ . '/../../resources/views' => $this->app->resourcePath('views/vendor/product-filters'),
         ], 'product-filters-views');
 
         $this->loadViewsFrom(
-            __DIR__.'/../../resources/views',
+            __DIR__ . '/../../resources/views',
             'product-filters',
         );
 
         remove_action('woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30);
 
-        Livewire::component('product-filters', ProductFiltersComponent::class);
+        Blade::directive('woocommerce_product', function ($expression) {
+            return "<?php
+                \$GLOBALS['post'] = get_post({$expression});
+                setup_postdata(\$GLOBALS['post']);
+            ?>";
+        });
+
+        Blade::directive('endwoocommerce_product', function () {
+            return '<?php wp_reset_postdata(); ?>';
+        });
+
         Livewire::component('products', ProductsComponent::class);
-        Livewire::component('product-filter-select', SelectComponent::class);
-        Livewire::component('product-filter-checkbox', CheckboxComponent::class);
-        Livewire::component('product-filter-radio', RadioComponent::class);
-        Livewire::component('product-filter-price', PriceComponent::class);
-        Livewire::component('product-sorting', ProductSortingComponent::class);
-        Livewire::component('product-search', ProductSearchComponent::class);
+        Livewire::component('product-filter.select', SelectFilter::class);
+        Livewire::component('product-filter.checkbox', CheckboxFilter::class);
+        Livewire::component('product-filter.radio', RadioFilter::class);
+        Livewire::component('product-filter.price', PriceFilter::class);
     }
 }

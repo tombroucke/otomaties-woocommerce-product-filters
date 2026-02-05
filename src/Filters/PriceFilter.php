@@ -2,14 +2,14 @@
 
 namespace Otomaties\ProductFilters\Filters;
 
-class Price extends Filter
+class PriceFilter
 {
-    public function modifyQueryArgs(array $args, array $values): array
+    public function apply(array $args, array $filter, array $value): array
     {
-        extract($values);
-
         $metaQuery = collect($args['meta_query'] ?? [])
             ->reject(fn ($query) => $query['key'] === '_price');
+
+        extract($value);
 
         if ($min && $max) {
             $metaQuery->push([

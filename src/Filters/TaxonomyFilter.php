@@ -2,173 +2,138 @@
 
 namespace Otomaties\ProductFilters\Filters;
 
-use Illuminate\Support\Facades\Cache;
-use Otomaties\ProductFilters\ProductFilters;
-
-class TaxonomyFilter extends Filter
+class TaxonomyFilter
 {
-    private string $taxonomy;
-
-    public function __construct(protected string $slug, array $params)
+    public function apply(array $args, array $filter, mixed $value): array
     {
-        $this->taxonomy = $params['taxonomy'];
+        $taxQuery = collect($args['tax_query'] ?? []);
 
-        parent::__construct($slug, $params);
-    }
-
-    private function productsForCurrentFilters(?string $queriedObjectTaxonomy, ?int $queriedObjectTermId, array $filterValues)
-    {
-        $filters = app('product-filters::filters');
-
-        // Start with base query args
-        $queryArgs = array_merge(ProductFilters::baseQueryArgs(), [
-            'posts_per_page' => -1,
-            'fields' => 'ids',
-        ]);
-
-        // Include the queried object (e.g., current product category) in the query
-        if ($queriedObjectTaxonomy && $queriedObjectTermId) {
-            $queryArgs['tax_query'] = $queryArgs['tax_query'] ?? [];
-            $queryArgs['tax_query'][] = [
-                'taxonomy' => $queriedObjectTaxonomy,
-                'field' => 'term_id',
-                'terms' => [$queriedObjectTermId],
-            ];
-        }
-
-        // Apply all filters except the current one
-        foreach ($filterValues as $key => $value) {
-            if ($key === $this->slug) {
-                continue; // Skip current filter
-            }
-
-            // Skip price_min and price_max as they're handled separately below
-            if (in_array($key, ['price_min', 'price_max'])) {
-                continue;
-            }
-
-            $filter = $filters->get($key);
-            if ($filter) {
-                $queryArgs = $filter->modifyQueryArgs($queryArgs, $value);
-            }
-        }
-
-        // Handle price filter separately if it exists
-        $priceMin = $filterValues['price_min'] ?? null;
-        $priceMax = $filterValues['price_max'] ?? null;
-
-        if (($priceMin || $priceMax) && $this->slug !== 'price') {
-            $queryArgs = $filters->get('price')->modifyQueryArgs($queryArgs, ['min' => $priceMin, 'max' => $priceMax]);
-        }
-
-        $cacheKey = 'product_taxonomy_filter_ids_'.md5(serialize($queryArgs));
-
-        return Cache::rememberForever($cacheKey, fn () => get_posts($queryArgs));
-    }
-
-    public function options(?string $queriedObjectTaxonomy, ?int $queriedObjectTermId, array $filterValues): array
-    {
-
-        // Remove price filters for taxonomy counts
-        $filterValuesWithoutPrice = $filterValues;
-        unset($filterValuesWithoutPrice['price_min'], $filterValuesWithoutPrice['price_max']);
-        $productIds = $this->productsForCurrentFilters($queriedObjectTaxonomy, $queriedObjectTermId, $filterValuesWithoutPrice);
-
-        // Get all terms for this taxonomy that are on the filtered products or their ancestors
-        $allTerms = wp_get_object_terms($productIds, $this->taxonomy(), [
-            'hide_empty' => true,
-        ]);
-
-        // Get parent term IDs from the directly assigned terms to include ancestor categories
-        $parentTermIds = [];
-        foreach ($allTerms as $term) {
-            $ancestors = get_ancestors($term->term_id, $this->taxonomy(), 'taxonomy');
-            $parentTermIds = array_merge($parentTermIds, $ancestors);
-        }
-
-        // Fetch parent terms
-        $parentTerms = [];
-        if (! empty($parentTermIds)) {
-            $parentTerms = get_terms([
-                'taxonomy' => $this->taxonomy(),
-                'include' => array_unique($parentTermIds),
-                'hide_empty' => false,
-            ]);
-        }
-
-        // Merge direct terms and parent terms
-        $terms = array_merge($allTerms, is_array($parentTerms) ? $parentTerms : []);
-
-        // Filter to show only relevant hierarchy level
-        if ($queriedObjectTaxonomy === $this->taxonomy()) {
-            // On a taxonomy archive, show children of the current term
-            $terms = array_filter($terms, fn ($term) => $term->parent == $queriedObjectTermId);
-        } else {
-            // Not on a taxonomy archive, show top-level terms
-            $terms = array_filter($terms, fn ($term) => $term->parent == 0);
-        }
-
-        // Count products for each term based on the filtered product set
-        return collect($terms)->mapWithKeys(function ($term) use ($productIds) {
-            // Get all child term IDs recursively to include products from subcategories
-            $termIds = [$term->term_id];
-            $childTermIds = get_term_children($term->term_id, $this->taxonomy());
-            if (! is_wp_error($childTermIds)) {
-                $termIds = array_merge($termIds, $childTermIds);
-            }
-
-            // Count how many of the filtered products have this term or any child term
-            $termProductIds = get_objects_in_term($termIds, $this->taxonomy());
-            $count = count(array_intersect($productIds, $termProductIds));
-
-            return [$term->slug => [
-                'label' => $term->name,
-                'count' => $count,
-            ]];
-        })
-            ->filter(fn ($option) => $option['count'] > 0) // Only show terms with products
-            ->toArray();
-    }
-
-    public function taxonomy(): string
-    {
-        return $this->taxonomy;
-    }
-
-    public function modifyQueryArgs(array $args, mixed $value): array
-    {
-        // Find the queried object tax query (added by productsForCurrentFilters) to preserve it
-        $queriedObjectQuery = null;
-        $taxQuery = collect($args['tax_query'] ?? [])
-            ->reject(function ($query) use (&$queriedObjectQuery) {
-                if ($query['taxonomy'] === $this->taxonomy()) {
-                    // If this uses term_id field, it's the queried object query - preserve it
-                    if (isset($query['field']) && $query['field'] === 'term_id') {
-                        $queriedObjectQuery = $query;
-                    }
-
-                    return true; // Remove all queries for this taxonomy
-                }
-
-                return false;
-            });
-
-        $value = array_filter((array) $value);
         if (! empty($value)) {
             $taxQuery->push([
-                'taxonomy' => $this->taxonomy(),
+                'taxonomy' => $filter['data']['taxonomy'],
                 'field' => 'slug',
                 'terms' => $value,
             ]);
         }
 
-        // Re-add the queried object query if it existed
-        if ($queriedObjectQuery) {
-            $taxQuery->push($queriedObjectQuery);
-        }
-
         $args['tax_query'] = $taxQuery->toArray();
 
         return $args;
+    }
+
+    public static function options(string $taxonomy, array $queriedObject, array $filteredProductQueryArgs): array
+    {
+        $queriedObjectTaxonomy = $queriedObject['taxonomy'] ?? null;
+        $queriedObjectTermId = $queriedObject['terms'] ?? ($queriedObject['term_id'] ?? null);
+
+        $selectedSlugs = collect($filteredProductQueryArgs['tax_query'] ?? [])
+            ->filter(fn ($taxQueryItem) => ($taxQueryItem['taxonomy'] ?? null) === $taxonomy
+                && ($taxQueryItem['field'] ?? null) === 'slug')
+            ->flatMap(fn ($taxQueryItem) => is_array($taxQueryItem['terms'] ?? null)
+                ? $taxQueryItem['terms']
+                : [$taxQueryItem['terms'] ?? null])
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $countQueryArgs = $filteredProductQueryArgs;
+
+        if (! empty($countQueryArgs['tax_query']) && is_array($countQueryArgs['tax_query'])) {
+            $filteredTaxQuery = array_filter(
+                $countQueryArgs['tax_query'],
+                fn ($taxQueryItem, $key) => $key === 'relation'
+                    || ($taxQueryItem['taxonomy'] ?? null) !== $taxonomy,
+                ARRAY_FILTER_USE_BOTH
+            );
+
+            if (count($filteredTaxQuery) === 1 && isset($filteredTaxQuery['relation'])) {
+                unset($countQueryArgs['tax_query']);
+            } else {
+                $countQueryArgs['tax_query'] = $filteredTaxQuery;
+            }
+        }
+        $countQueryArgs['posts_per_page'] = -1;
+        $countQueryArgs['paged'] = 1;
+        $countQueryArgs['fields'] = 'ids';
+        $countQueryArgs['no_found_rows'] = true;
+
+        $productIds = get_posts($countQueryArgs);
+
+        if (empty($productIds)) {
+            if (empty($selectedSlugs)) {
+                return [];
+            }
+
+            $selectedTerms = get_terms([
+                'taxonomy' => $taxonomy,
+                'slug' => $selectedSlugs,
+                'hide_empty' => false,
+            ]);
+
+            if (is_wp_error($selectedTerms) || empty($selectedTerms)) {
+                return [];
+            }
+
+            return collect($selectedTerms)
+                ->mapWithKeys(fn ($term) => [
+                    $term->slug => [
+                        'label' => $term->name,
+                        'count' => 0,
+                    ],
+                ])
+                ->toArray();
+        }
+
+        $termsArgs = [
+            'taxonomy' => $taxonomy,
+            'hide_empty' => true,
+            'object_ids' => $productIds,
+        ];
+
+        if (! empty($queriedObject) && $queriedObjectTaxonomy === $taxonomy && ! empty($queriedObjectTermId)) {
+            $termsArgs['parent'] = (int) $queriedObjectTermId;
+        } else {
+            $termsArgs['parent'] = 0;
+        }
+
+        $termsWithObjectIds = wp_get_object_terms($productIds, $taxonomy, [
+            'fields' => 'all_with_object_id',
+        ]);
+
+        $termCounts = [];
+        foreach ($termsWithObjectIds as $term) {
+            $termCounts[$term->term_id] = ($termCounts[$term->term_id] ?? 0) + 1;
+        }
+
+        $options = collect(get_terms($termsArgs))
+            ->mapWithKeys(fn ($term) => [
+                $term->slug => [
+                    'label' => $term->name,
+                    'count' => $termCounts[$term->term_id] ?? 0,
+                ],
+            ])
+            ->toArray();
+
+        if (! empty($selectedSlugs)) {
+            $selectedTerms = get_terms([
+                'taxonomy' => $taxonomy,
+                'slug' => $selectedSlugs,
+                'hide_empty' => false,
+            ]);
+
+            if (! is_wp_error($selectedTerms)) {
+                foreach ($selectedTerms as $selectedTerm) {
+                    if (! isset($options[$selectedTerm->slug])) {
+                        $options[$selectedTerm->slug] = [
+                            'label' => $selectedTerm->name,
+                            'count' => $termCounts[$selectedTerm->term_id] ?? 0,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $options;
     }
 }
