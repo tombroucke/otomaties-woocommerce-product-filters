@@ -22,6 +22,7 @@ class PriceFilter extends Filter
         $this->loadLimits();
     }
 
+    #[On('filters-updated')]
     public function loadLimits()
     {
         $limits = FiltersPriceFilter::limits($this->queriedObject, $this->filteredProductQueryArgs);
@@ -30,12 +31,6 @@ class PriceFilter extends Filter
     }
 
     public function updatedFilteredProductQueryArgs()
-    {
-        $this->loadLimits();
-    }
-
-    #[On('filters-updated')]
-    public function refreshOptions(): void
     {
         $this->loadLimits();
     }

@@ -49,6 +49,16 @@ class PriceFilter
             ->values()
             ->toArray();
 
+        // Remove the queried product_cat from tax_query
+        if (($queriedObject['taxonomy'] ?? null) === 'product_cat' && ! empty($countQueryArgs['tax_query'])) {
+            foreach ($countQueryArgs['tax_query'] as $key => $taxQueryItem) {
+                if (($taxQueryItem['taxonomy'] ?? null) === 'product_cat'
+                    && ($taxQueryItem['terms'] ?? null) === $queriedObject['terms']) {
+                    unset($countQueryArgs['tax_query'][$key]);
+                }
+            }
+        }
+
         $countQueryArgs['posts_per_page'] = -1;
         $countQueryArgs['paged'] = 1;
         $countQueryArgs['fields'] = 'ids';
