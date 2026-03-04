@@ -6,12 +6,16 @@
       type="number"
       wire:model.live.debounce.500ms="value.min"
       placeholder="Min"
+      min="{{ $lowerLimit }}"
+      max="{{ $upperLimit }}"
     >
     <input
       class="w-1/2 rounded border p-2"
       type="number"
       wire:model.live.debounce.500ms="value.max"
       placeholder="Max"
+      min="{{ $lowerLimit }}"
+      max="{{ $upperLimit }}"
     >
   </div>
 </div>

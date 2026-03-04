@@ -38,4 +38,43 @@ class PriceFilter
 
         return $args;
     }
+
+    public static function limits(array $queriedObject, array $filteredProductQueryArgs): array
+    {
+        global $wpdb;
+
+        $countQueryArgs = $filteredProductQueryArgs;
+        $countQueryArgs['meta_query'] = collect($countQueryArgs['meta_query'] ?? [])
+            ->reject(fn ($query) => isset($query['key']) && $query['key'] === '_price')
+            ->values()
+            ->toArray();
+
+        $countQueryArgs['posts_per_page'] = -1;
+        $countQueryArgs['paged'] = 1;
+        $countQueryArgs['fields'] = 'ids';
+        $countQueryArgs['no_found_rows'] = true;
+
+        $productIds = get_posts($countQueryArgs);
+
+        if (empty($productIds)) {
+            return [
+                'lower_limit' => 0,
+                'upper_limit' => 0,
+            ];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($productIds), '%d'));
+
+        $query = $wpdb->prepare(
+            "SELECT min(meta_value + 0) as min_price, max(meta_value + 0) as max_price FROM {$wpdb->postmeta} WHERE meta_key = '_price' AND post_id IN ($placeholders)",
+            ...$productIds
+        );
+
+        $prices = $wpdb->get_row($query);
+
+        return [
+            'lower_limit' => $prices->min_price ?? 0,
+            'upper_limit' => $prices->max_price ?? 0,
+        ];
+    }
 }
