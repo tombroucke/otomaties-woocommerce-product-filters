@@ -85,18 +85,6 @@ class TaxonomyFilter
                 ->toArray();
         }
 
-        $termsArgs = [
-            'taxonomy' => $taxonomy,
-            'hide_empty' => true,
-            'object_ids' => $productIds,
-        ];
-
-        if (! empty($queriedObject) && $queriedObjectTaxonomy === $taxonomy && ! empty($queriedObjectTermId)) {
-            $termsArgs['parent'] = (int) $queriedObjectTermId;
-        } else {
-            $termsArgs['parent'] = 0;
-        }
-
         $termsWithObjectIds = wp_get_object_terms($productIds, $taxonomy, [
             'fields' => 'all_with_object_id',
         ]);
@@ -104,6 +92,45 @@ class TaxonomyFilter
         $termCounts = [];
         foreach ($termsWithObjectIds as $term) {
             $termCounts[$term->term_id] = ($termCounts[$term->term_id] ?? 0) + 1;
+        }
+
+        // For hierarchical taxonomies, propagate child counts to parent terms
+        $termIdsToInclude = array_keys($termCounts);
+        if (is_taxonomy_hierarchical($taxonomy)) {
+            $parentProductIds = []; // Track which products contribute to each parent term
+
+            foreach ($termsWithObjectIds as $term) {
+                if ($term->parent) {
+                    $productId = $term->object_id;
+                    $parentIds = get_ancestors($term->term_id, $taxonomy, 'taxonomy');
+
+                    foreach ($parentIds as $parentId) {
+                        if (! isset($parentProductIds[$parentId])) {
+                            $parentProductIds[$parentId] = [];
+                        }
+                        $parentProductIds[$parentId][$productId] = true;
+                    }
+                }
+            }
+
+            // Add parent counts to term counts
+            foreach ($parentProductIds as $parentId => $productIdSet) {
+                $termCounts[$parentId] = ($termCounts[$parentId] ?? 0) + count($productIdSet);
+                $termIdsToInclude[] = $parentId;
+            }
+        }
+
+        // Build args to get terms to display
+        $termsArgs = [
+            'taxonomy' => $taxonomy,
+            'hide_empty' => false,
+            'include' => array_unique($termIdsToInclude),
+        ];
+
+        if (! empty($queriedObject) && $queriedObjectTaxonomy === $taxonomy && ! empty($queriedObjectTermId)) {
+            $termsArgs['parent'] = (int) $queriedObjectTermId;
+        } else {
+            $termsArgs['parent'] = 0;
         }
 
         $options = collect(get_terms($termsArgs))
