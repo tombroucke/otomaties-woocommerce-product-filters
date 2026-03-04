@@ -26,8 +26,8 @@ class PriceFilter extends Filter
     public function loadLimits()
     {
         $limits = FiltersPriceFilter::limits($this->queriedObject, $this->filteredProductQueryArgs);
-        $this->lowerLimit = $limits['lower_limit'];
-        $this->upperLimit = $limits['upper_limit'];
+        $this->lowerLimit = floor($limits['lower_limit']);
+        $this->upperLimit = ceil($limits['upper_limit']);
     }
 
     public function updatedFilteredProductQueryArgs()
