@@ -3,6 +3,7 @@
 namespace Otomaties\ProductFilters\Livewire;
 
 use Illuminate\Support\Collection;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
@@ -149,6 +150,10 @@ class ProductsComponent extends Component
 
     private function filteredProducts()
     {
+        if (woocommerce_get_loop_display_mode() !== 'products') {
+            return new Collection;
+        }
+
         $args = $this->appendOrderingArgs($this->filteredProductQueryArgs());
 
         return (new Collection(get_posts($args)))
@@ -214,6 +219,10 @@ class ProductsComponent extends Component
     #[Computed]
     public function foundProducts(): int
     {
+        if (woocommerce_get_loop_display_mode() !== 'products') {
+            return 0;
+        }
+
         $args = array_merge(
             $this->baseQueryArgs(),
             ['posts_per_page' => -1]
@@ -229,6 +238,10 @@ class ProductsComponent extends Component
     #[Computed]
     public function pages(): array
     {
+        if (woocommerce_get_loop_display_mode() !== 'products') {
+            return [];
+        }
+
         $query = new \WP_Query($this->filteredProductQueryArgs());
 
         $total = (int) $query->max_num_pages;
@@ -287,7 +300,7 @@ class ProductsComponent extends Component
     /**
      * Render the component.
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function render()
     {
