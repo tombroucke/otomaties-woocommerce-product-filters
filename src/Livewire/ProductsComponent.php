@@ -10,6 +10,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Otomaties\ProductFilters\Filters\MetaFilter;
 use Otomaties\ProductFilters\Filters\PriceFilter;
+use Otomaties\ProductFilters\Filters\SearchFilter;
 use Otomaties\ProductFilters\Filters\TaxonomyFilter;
 
 class ProductsComponent extends Component
@@ -62,6 +63,10 @@ class ProductsComponent extends Component
                 'min' => $query['price_min'] ?? null,
                 'max' => $query['price_max'] ?? null,
             ];
+        }
+
+        if ($key == 'search' && isset($query['s'])) {
+            return $query['s'];
         }
 
         if (isset($query[$key])) {
@@ -169,6 +174,7 @@ class ProductsComponent extends Component
 
             $args = match ($filter['component']) {
                 'price' => (new PriceFilter)->apply($args, $filter, $this->activeFilters[$key]),
+                'search' => (new SearchFilter)->apply($args, $filter, $this->activeFilters[$key]),
                 'checkbox' => ($filter['data']['type'] ?? null) === 'meta'
                     ? (new MetaFilter)->apply($args, $filter, $this->activeFilters[$key])
                     : (new TaxonomyFilter)->apply($args, $filter, $this->activeFilters[$key]),

@@ -40,6 +40,10 @@ return [
     */
 
     'filters' => [
+        'search' => [
+            'title' => 'Search',
+            'component' => 'search',
+        ],
         'product_category' => [
             'title' => 'Product Category',
             'component' => 'checkbox',
