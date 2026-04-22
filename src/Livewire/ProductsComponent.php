@@ -283,6 +283,8 @@ class ProductsComponent extends Component
             'post_type' => 'product',
             'fields' => 'ids',
             'posts_per_page' => $this->postsPerPage,
+            'orderby' => 'menu_order',
+            'order' => 'ASC',
         ];
 
         if (! empty($this->queriedObject)) {
