@@ -121,10 +121,16 @@ class TaxonomyFilter
         }
 
         // Build args to get terms to display
+        $termIdsToInclude = array_unique($termIdsToInclude);
+
+        if (empty($termIdsToInclude) && empty($selectedSlugs)) {
+            return [];
+        }
+
         $termsArgs = [
             'taxonomy' => $taxonomy,
             'hide_empty' => false,
-            'include' => array_unique($termIdsToInclude),
+            'include' => $termIdsToInclude,
         ];
 
         if (! empty($queriedObject) && $queriedObjectTaxonomy === $taxonomy && ! empty($queriedObjectTermId)) {
