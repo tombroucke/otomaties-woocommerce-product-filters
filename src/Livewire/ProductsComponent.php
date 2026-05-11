@@ -40,12 +40,26 @@ class ProductsComponent extends Component
         $this->queriedObject = $this->queriedObjectToArray();
         $this->orderByOptions = $this->orderbyOptions();
         $this->orderBy = $this->orderBy();
+
+        // URL param takes priority, then cookie, then filter default
+        if (! isset($_GET['view'])) {
+            $savedViewPreference = $_COOKIE['product_filters_view'] ?? null;
+            if (in_array($savedViewPreference, ['grid', 'list'])) {
+                $this->view = $savedViewPreference;
+            }
+        }
         $this->view = apply_filters('product_filters_default_view', $this->view);
+
         $this->filters = $this->filters();
 
         foreach ($this->filters as $key => $filter) {
             $this->activeFilters[$key] = $this->getValue($key);
         }
+    }
+
+    public function updatedView(string $value): void
+    {
+        setcookie('product_filters_view', $value, time() + (365 * 24 * 60 * 60), '/');
     }
 
     #[On('filter-updated')]
