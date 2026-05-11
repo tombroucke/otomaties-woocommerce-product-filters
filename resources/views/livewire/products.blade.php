@@ -14,6 +14,16 @@
         </option>
       @endforeach
     </select>
+    <div class="products__view-switcher">
+      <label>
+        <input type="radio" wire:model.live="view" value="grid" />
+        {{ __('Grid', 'otomaties-woocommerce-product-filters') }}
+      </label>
+      <label>
+        <input type="radio" wire:model.live="view" value="list" />
+        {{ __('List', 'otomaties-woocommerce-product-filters') }}
+      </label>
+    </div>
   </div>
   <div class="products__filters">
     @foreach ($filters as $key => $filter)
@@ -31,7 +41,7 @@
     @endforeach
   </div>
   <div class="products__products">
-    <div>
+    <div class="products__products-inner products__products-inner--{{ $view }}">
       @unless ($products->isEmpty())
         @php
           do_action('woocommerce_before_shop_loop');

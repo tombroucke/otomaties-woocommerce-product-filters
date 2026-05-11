@@ -27,6 +27,9 @@ class ProductsComponent extends Component
     #[Url('orderby')]
     public string $orderBy = '';
 
+    #[Url('view')]
+    public string $view = 'grid';
+
     public array $filters = [];
 
     public array $activeFilters = [];
@@ -37,6 +40,7 @@ class ProductsComponent extends Component
         $this->queriedObject = $this->queriedObjectToArray();
         $this->orderByOptions = $this->orderbyOptions();
         $this->orderBy = $this->orderBy();
+        $this->view = apply_filters('product_filters_default_view', $this->view);
         $this->filters = $this->filters();
 
         foreach ($this->filters as $key => $filter) {
