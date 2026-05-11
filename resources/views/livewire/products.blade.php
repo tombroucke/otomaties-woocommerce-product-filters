@@ -6,6 +6,7 @@
         '<strong>' . number_format_i18n($this->foundProducts) . '</strong>',
     ) !!}
   </div>
+
   <div class="products__sorting">
     <select wire:model.live="orderBy">
       @foreach ($orderByOptions as $key => $orderByOption)
@@ -14,17 +15,27 @@
         </option>
       @endforeach
     </select>
-    <div class="products__view-switcher">
-      <label>
-        <input type="radio" wire:model.live="view" value="grid" />
-        {{ __('Grid', 'otomaties-woocommerce-product-filters') }}
-      </label>
-      <label>
-        <input type="radio" wire:model.live="view" value="list" />
-        {{ __('List', 'otomaties-woocommerce-product-filters') }}
-      </label>
-    </div>
   </div>
+
+  <div class="products__view">
+    <label>
+      <input
+        type="radio"
+        wire:model.live="view"
+        value="grid"
+      />
+      {{ __('Grid', 'otomaties-woocommerce-product-filters') }}
+    </label>
+    <label>
+      <input
+        type="radio"
+        wire:model.live="view"
+        value="list"
+      />
+      {{ __('List', 'otomaties-woocommerce-product-filters') }}
+    </label>
+  </div>
+
   <div class="products__filters">
     @foreach ($filters as $key => $filter)
       @livewire(
@@ -40,6 +51,7 @@
       )
     @endforeach
   </div>
+
   <div class="products__products">
     <div class="products__products-inner products__products-inner--{{ $view }}">
       @unless ($products->isEmpty())

@@ -22,7 +22,7 @@ class ProductFiltersServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../../config/product-filters.php',
+            __DIR__.'/../../config/product-filters.php',
             'product-filters'
         );
     }
@@ -35,15 +35,15 @@ class ProductFiltersServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/../../config/product-filters.php' => $this->app->configPath('product-filters.php'),
+            __DIR__.'/../../config/product-filters.php' => $this->app->configPath('product-filters.php'),
         ], 'product-filters-config');
 
         $this->publishes([
-            __DIR__ . '/../../resources/views' => $this->app->resourcePath('views/vendor/product-filters'),
+            __DIR__.'/../../resources/views' => $this->app->resourcePath('views/vendor/product-filters'),
         ], 'product-filters-views');
 
         $this->loadViewsFrom(
-            __DIR__ . '/../../resources/views',
+            __DIR__.'/../../resources/views',
             'product-filters',
         );
 
